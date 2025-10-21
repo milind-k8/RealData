@@ -1,6 +1,6 @@
-# YouTube Scraper API
+# RealData - YouTube Scraper API
 
-A robust YouTube data scraper API that fetches video information, comments, and metadata with comprehensive error handling.
+Scrape authentic data from all platforms. A robust YouTube data scraper API that fetches video information, comments, and metadata with comprehensive error handling.
 
 ## Features
 
