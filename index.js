@@ -57,12 +57,24 @@ async function runInBatches(items, batchSize, fn) {
 }
 
 /* ------------------------------------------------------------------ */
+/* ✅ Healthcheck Route for Docker/CasaOS                              */
+/* ------------------------------------------------------------------ */
+app.get("/", (req, res) => {
+    res.status(200).json({
+      status: "ok",
+      service: "RealData API",
+      uptime: process.uptime(),
+      timestamp: new Date().toISOString()
+    });
+  });  
+
+/* ------------------------------------------------------------------ */
 /* 🔹 Main Endpoint: /search                                          */
 /* ------------------------------------------------------------------ */
 app.get("/search", async (req, res) => {
   try {
     const query = req.query.q;
-    if (!query) return res.status(400).json({ error: "Missing ?q= parameter" });
+    if (!query) return res.status(200).json({ error: "Missing ?q= parameter" });
 
     // Parse and validate parameters
     const suggestionCount = Math.min(Math.max(parseInt(req.query.suggestionCount) || 4, 0), 10);
@@ -71,7 +83,7 @@ app.get("/search", async (req, res) => {
     // Input validation and sanitization
     const sanitizedQuery = query.trim().slice(0, 100); // Limit query length
     if (sanitizedQuery.length < 2) {
-      return res.status(400).json({ error: "Query must be at least 2 characters long" });
+      return res.status(200).json({ error: "Query must be at least 2 characters long" });
     }
 
     console.log(`🔍 Searching for: ${sanitizedQuery} (suggestions: ${suggestionCount}, videos: ${videoCount})`);
@@ -91,7 +103,7 @@ app.get("/search", async (req, res) => {
     const searchResults = await Promise.allSettled(
       terms.map(async (term) => {
         try {
-          return await YouTube.search(term, { limit: 3, type: "video" });
+          return await YouTube.search(term, { limit: videoCount, type: "video" });
         } catch (err) {
           console.warn(`⚠️ Search failed for term "${term}": ${err.message}`);
           return []; // Return empty array for failed searches
@@ -122,7 +134,6 @@ app.get("/search", async (req, res) => {
     )
       .filter((v) => v && v.views && v.id) // Additional safety checks
       .sort((a, b) => (b.views || 0) - (a.views || 0))
-      .slice(0, videoCount);
 
     console.log(`⚡ Processing ${uniqueVideos.length} videos...`);
 
